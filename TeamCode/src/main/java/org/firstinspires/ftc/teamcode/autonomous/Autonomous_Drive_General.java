@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -65,16 +66,18 @@ public class BlueSideTestAuto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    lift.setPower(-0.8);
+                    liftRight.setPower(-0.8);
+                    liftLeft.setPower(-0.8);
                     initialized = true;
                 }
 
-                double pos = lift.getCurrentPosition();
+                double pos = liftRight.getCurrentPosition();
                 packet.put("liftPos", pos);
                 if (pos > 100.0) {
                     return true;
                 } else {
-                    lift.setPower(0);
+                    liftRight.setPower(0);
+                    liftLeft.setPower(0);
                     return false;
                 }
             }
@@ -84,22 +87,42 @@ public class BlueSideTestAuto extends LinearOpMode {
         }
     }
 
-    public class Claw {
-        private Servo claw;
+    public class Intake {
+        private CRServo intake;
+        private Servo intakePivot;
+        private DcMotorEx intakeArm;
 
-        public Claw(HardwareMap hardwareMap) {
-            claw = hardwareMap.get(Servo.class, "claw");
+        public Intake(HardwareMap hardwareMap) {
+            intake = hardwareMap.get(CRServo.class, "intake");
+            intakePivot = hardwareMap.get(Servo.class, "intake_pivot");
+            intakeArm = hardwareMap.get(DcMotorEx.class, "intake_arm");
+            intakeArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
-        public class CloseClaw implements Action {
+        public class IntakeSample implements Action {
+            private boolean initialized = false;
+            private double ticks = 0.0;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.55);
-                return false;
+                if (!initialized) {
+                    ticks = 0.0;
+                    intakePivot.setPosition(0.55);
+                    intake.setPower(1.0);
+                    initialized = true;
+                }
+                ticks += 1;
+                packet.put("liftPos", ticks);
+                if (ticks < 1000) {
+                    return true;
+                } else {
+                    intakePivot.setPosition(0.0);
+                    intake.setPower(0);
+                    return false;
+                }
             }
         }
         public Action closeClaw() {
-            return new CloseClaw();
+            return new IntakeSample();
         }
 
         public class OpenClaw implements Action {
