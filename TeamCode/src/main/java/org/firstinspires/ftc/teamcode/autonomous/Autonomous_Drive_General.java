@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleops;
+package org.firstinspires.ftc.teamcode.autonomous;
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -22,12 +21,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 @Autonomous(name = "BLUE_TEST_AUTO_PIXEL", group = "Autonomous")
 public class BlueSideTestAuto extends LinearOpMode {
     public class Lift {
-        private DcMotorEx lift;
+        private DcMotorEx liftRight;
+        private DcMotorEx liftLeft;
 
         public Lift(HardwareMap hardwareMap) {
-            lift = hardwareMap.get(DcMotorEx.class, "liftMotor");
-            lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            lift.setDirection(DcMotorSimple.Direction.FORWARD);
+            liftRight = hardwareMap.get(DcMotorEx.class, "liftMotor_right");
+            liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            liftRight.setDirection(DcMotorSimple.Direction.FORWARD);
+            liftLeft = hardwareMap.get(DcMotorEx.class, "liftMotor_left");
+            liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
         public class LiftUp implements Action {
@@ -36,16 +39,18 @@ public class BlueSideTestAuto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    lift.setPower(0.8);
+                    liftRight.setPower(0.8);
+                    liftLeft.setPower(0.8);
                     initialized = true;
                 }
 
-                double pos = lift.getCurrentPosition();
+                double pos = liftLeft.getCurrentPosition();
                 packet.put("liftPos", pos);
                 if (pos < 3000.0) {
                     return true;
                 } else {
-                    lift.setPower(0);
+                    liftLeft.setPower(0);
+                    liftRight.setPower(0);
                     return false;
                 }
             }
