@@ -110,7 +110,11 @@ public class BlueSideTestAuto extends LinearOpMode {
                     intake.setPower(1.0);
                     initialized = true;
                 }
-                ticks += 1;
+                if (intakePivot.getPosition() != 0.55){
+                    return true;
+                } else{
+                    ticks += 1;
+                }
                 packet.put("liftPos", ticks);
                 if (ticks < 1000) {
                     return true;
@@ -121,19 +125,43 @@ public class BlueSideTestAuto extends LinearOpMode {
                 }
             }
         }
-        public Action closeClaw() {
+        public Action intakeSample() {
             return new IntakeSample();
         }
 
-        public class OpenClaw implements Action {
+        public class DepositSample implements Action {
+            private boolean initialized = false;
+            private boolean deposit = false;
+            private double ticks = 0.0;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(1.0);
-                return false;
+                if (!initialized) {
+                    ticks = 0.0;
+                    intakePivot.setPosition(0.0);
+                    intake.setPower(0.0);
+                    initialized = true;
+                }
+                if (intakePivot.getPosition() != 0.0){
+                    return true;
+                } else {
+                    ticks += 1;
+                    if (!deposit){
+                        intake.setPower(-1.0);
+                        deposit = true;
+                    }
+                }
+                packet.put("liftPos", ticks);
+                if (ticks < 1000) {
+                    return true;
+                } else {
+                    intakePivot.setPosition(0.0);
+                    intake.setPower(0);
+                    return false;
+                }
             }
         }
-        public Action openClaw() {
-            return new OpenClaw();
+        public Action depositSample() {
+            return new DepositSample();
         }
     }
 
@@ -141,7 +169,7 @@ public class BlueSideTestAuto extends LinearOpMode {
     public void runOpMode() {
         Pose2d initialPose = new Pose2d(11.8, 61.7, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        Claw claw = new Claw(hardwareMap);
+        Intake intake = new Intake(hardwareMap);
         Lift lift = new Lift(hardwareMap);
 
         // vision here that outputs position
