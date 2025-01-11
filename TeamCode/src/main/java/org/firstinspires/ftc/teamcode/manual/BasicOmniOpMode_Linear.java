@@ -102,7 +102,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         leftLiftMotor.setDirection(DcMotor.Direction.FORWARD);
-        rightLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightLiftMotor.setDirection(DcMotor.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -182,7 +182,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Lift  left/Right", "%4.2f, %4.2f", liftPower);
+            telemetry.addData("Lift  left/Right", "%4.2f", liftPower);
             telemetry.update();
         }
     }}
