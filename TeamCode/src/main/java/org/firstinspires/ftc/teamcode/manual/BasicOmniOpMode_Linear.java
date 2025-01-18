@@ -130,10 +130,13 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         int arm_inital_position = armMotor.getCurrentPosition();
         int left_inital_position = leftLiftMotor.getCurrentPosition();
         int right_inital_position = rightLiftMotor.getCurrentPosition();
+        int arm_mode = -1;
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+
 
         waitForStart();
         runtime.reset();
@@ -148,6 +151,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
             double lift_up = gamepad1.left_trigger;
             double lift_down = gamepad1.right_trigger;
+            int left_lift_relative = leftLiftMotor.getCurrentPosition() - left_inital_position;
+            int right_lift_relative = rightLiftMotor.getCurrentPosition() - right_inital_position;
+            int arm_relative = armMotor.getCurrentPosition() - arm_inital_position;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -171,27 +177,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
 
 //            Arm positions:
-//            0 > 550(min) > 2100 (max)
+//            slide:0 > 550(min) > 2100 (max)
+//            servo: idle: 46, in-action: 87, docked: 22
 //            Lift positions:
 //            left: 0(min) >
 //            right: 0(max) >
-
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
-
-            /*
-            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
+//            Outtake: 0: out, 65: idle
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -200,17 +191,55 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
             leftLiftMotor.setPower(liftPower);
             rightLiftMotor.setPower(liftPower);
+            if (gamepad1.dpad_left){
+                arm_mode = 0;
+            }else if (gamepad1.dpad_right){
+                arm_mode = 2;
+            }else if (gamepad1.dpad_up){
+                arm_mode = 1;
+            }
+            if (arm_mode == 0) {
+                armServo.setPosition(0.22);
+                intakeServo.setPower(0);
+            }else if (arm_mode == 1) {
+                armServo.setPosition(0.46);
+                intakeServo.setPower(0);
+            }else if (arm_mode == 2) {
+                armServo.setPosition(0.87);
+                intakeServo.setPower(1);
+            }
+//            if (gamepad1.dpad_left){
+//                outtakeServo.setPosition(outtakeServo.getPosition()+0.01);
+//            }else if (gamepad1.dpad_right){
+//                outtakeServo.setPosition(outtakeServo.getPosition()-0.01);
+//            }
+            if (gamepad1.b){
+                outtakeServo.setPosition(0.0);
+            }else{
+                outtakeServo.setPosition(0.65);
+            }
+            if (gamepad1.x){
+                intakeServo.setPower(-1);
+            }
+            if (gamepad1.y && (arm_relative < 2100)){
+                armMotor.setPower(0.7);
+            } else if (gamepad1.a && (arm_relative > 550)) {
+                armMotor.setPower(0.7);
+            }else {
+                armMotor.setPower(0);
+            }
+
             if (liftPower > 0) {
-                if (leftLiftMotor.getCurrentPosition() > (rightLiftMotor.getCurrentPosition() + 5)) {
-                    leftLiftMotor.setPower(0);
-                } else if (rightLiftMotor.getCurrentPosition() > (leftLiftMotor.getCurrentPosition() + 5)) {
-                    rightLiftMotor.setPower(0);
+                if (left_lift_relative > (right_lift_relative + 5)) {
+                    leftLiftMotor.setPower(liftPower/2);
+                } else if (right_lift_relative > (left_lift_relative + 5)) {
+                    rightLiftMotor.setPower(liftPower/2);
                 }
             }else if (liftPower < 0) {
-                if (leftLiftMotor.getCurrentPosition() < (rightLiftMotor.getCurrentPosition() - 5)) {
-                    leftLiftMotor.setPower(0);
-                }else if (rightLiftMotor.getCurrentPosition() < (leftLiftMotor.getCurrentPosition() - 5)) {
-                    rightLiftMotor.setPower(0);
+                if (left_lift_relative < (right_lift_relative - 5)) {
+                    leftLiftMotor.setPower(liftPower/2);
+                }else if (right_lift_relative < (left_lift_relative - 5)) {
+                    rightLiftMotor.setPower(liftPower/2);
                 }
             }
 
