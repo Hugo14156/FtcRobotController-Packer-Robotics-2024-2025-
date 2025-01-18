@@ -177,7 +177,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
 
 //            Arm positions:
-//            slide:0 > 550(min) > 2100 (max)
+//            slide:0 > 550(min) > 1995 (max)
 //            servo: idle: 46, in-action: 87, docked: 22
 //            Lift positions:
 //            left: 0(min) >
@@ -221,10 +221,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             if (gamepad1.x){
                 intakeServo.setPower(-1);
             }
-            if (gamepad1.y && (arm_relative < 2100)){
+            if (gamepad1.y && (arm_relative < 1995)){
                 armMotor.setPower(0.7);
             } else if (gamepad1.a && (arm_relative > 550)) {
-                armMotor.setPower(0.7);
+                armMotor.setPower(-0.7);
             }else {
                 armMotor.setPower(0);
             }
