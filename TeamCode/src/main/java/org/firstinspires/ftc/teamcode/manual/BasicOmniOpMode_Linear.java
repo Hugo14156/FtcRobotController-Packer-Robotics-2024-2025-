@@ -31,7 +31,10 @@ package org.firstinspires.ftc.teamcode.manual;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -74,18 +77,26 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor leftLiftMotor = null;
     private DcMotor rightLiftMotor = null;
+    private DcMotor armMotor = null;
+    private Servo armServo = null;
+    private Servo outtakeServo = null;
+    private CRServo intakeServo = null;
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         leftLiftMotor = hardwareMap.get(DcMotor.class, "left_lift_drive");
         rightLiftMotor = hardwareMap.get(DcMotor.class, "right_lift_drive");
+        armMotor = hardwareMap.get(DcMotor.class, "arm_drive");
+        armServo = hardwareMap.get(Servo.class, "arm_servo");
+        outtakeServo = hardwareMap.get(Servo.class, "outtake_servo");
+        intakeServo = hardwareMap.get(CRServo.class, "intake_servo");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -103,6 +114,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         leftLiftMotor.setDirection(DcMotor.Direction.FORWARD);
         rightLiftMotor.setDirection(DcMotor.Direction.REVERSE);
+        armMotor.setDirection(DcMotor.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -110,9 +122,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightLiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        int arm_inital_position = armMotor.getCurrentPosition();
+        int left_inital_position = leftLiftMotor.getCurrentPosition();
+        int right_inital_position = rightLiftMotor.getCurrentPosition();
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -153,6 +170,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 rightBackPower  /= max;
             }
 
+//            Arm positions:
+//            0 > 550(min) > 2100 (max)
+//            Lift positions:
+//            left: 0(min) >
+//            right: 0(max) >
+
             // This is test code:
             //
             // Uncomment the following code to test your motor directions.
@@ -177,12 +200,27 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
             leftLiftMotor.setPower(liftPower);
             rightLiftMotor.setPower(liftPower);
+            if (liftPower > 0) {
+                if (leftLiftMotor.getCurrentPosition() > (rightLiftMotor.getCurrentPosition() + 5)) {
+                    leftLiftMotor.setPower(0);
+                } else if (rightLiftMotor.getCurrentPosition() > (leftLiftMotor.getCurrentPosition() + 5)) {
+                    rightLiftMotor.setPower(0);
+                }
+            }else if (liftPower < 0) {
+                if (leftLiftMotor.getCurrentPosition() < (rightLiftMotor.getCurrentPosition() - 5)) {
+                    leftLiftMotor.setPower(0);
+                }else if (rightLiftMotor.getCurrentPosition() < (leftLiftMotor.getCurrentPosition() - 5)) {
+                    rightLiftMotor.setPower(0);
+                }
+            }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Lift  left/Right", "%4.2f", liftPower);
+            telemetry.addData("Back left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Lift left/Right", "%4.2f", liftPower);
+            telemetry.addData("Motors left_lift/right_lift/arm", "%d, %d, %d", (leftLiftMotor.getCurrentPosition()-left_inital_position), (rightLiftMotor.getCurrentPosition()-right_inital_position), (armMotor.getCurrentPosition()-arm_inital_position));
+            telemetry.addData("Servos arm/outtake", "%4.2f, %4.2f", armServo.getPosition(), outtakeServo.getPosition());
             telemetry.update();
         }
     }}
