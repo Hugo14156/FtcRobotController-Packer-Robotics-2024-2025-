@@ -221,7 +221,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             if (gamepad1.x){
                 intakeServo.setPower(-1);
             }
-            if (gamepad1.y && (arm_relative < 1995)){
+            if (gamepad1.y && (arm_relative < 930)){
                 armMotor.setPower(0.7);
             } else if (gamepad1.a && (arm_relative > 550)) {
                 armMotor.setPower(-0.7);
